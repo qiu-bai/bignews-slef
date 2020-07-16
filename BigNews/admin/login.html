@@ -100,6 +100,8 @@
               //解决办法:加点击事件
               $('#myModal').on('hidden.bs.modal', function (e) {
                 // do something...
+                //将服务器返回的token存入到localStorage
+                localStorage.setItem('token',backData.token);
                 window.location.href='./index.html';
               });
             }else{
