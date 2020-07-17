@@ -44,7 +44,7 @@
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
                         <img src="images/2.jpg" alt="" class="user_pic">
-                        <input style="display: block" name="userPic" type="file" id="exampleInputFile">
+                        <input style="display: none" name="userPic" type="file" id="exampleInputFile">
                         <!-- 给label标签的for属性赋值,值是input标签的id,那这样的话点击label就相当于点击了input -->
                         <br>
                         <label for="exampleInputFile">
@@ -68,6 +68,71 @@
             </form>
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function () {
+            /*
+            页面一加载就发送ajax请求
+            
+            */
+            $.ajax({
+                url: BigNew.user_detail,
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    console.log(backData);
+                    //数据渲染
+                    $('.user_pic').attr('src', backData.data.userPic);
+                    for (var key in backData.data) {
+                        $('.' + key).val(backData.data[key]);
+                    }
+                }
+            });
+            //文件预览
+            //给表单注册onchange事件
+            $('#exampleInputFile').on('change', function () {
+                //获取用户选择的文件
+                var file = this.files[0];
+                //将文件生成url
+                var url = URL.createObjectURL(file);
+                //将url赋值给img标签的src
+                $('.user_pic').attr('src', url);
+            })
+            //文件上传
+            $('.btn-edit').on('click', function (e) {
+                //阻止表单默认跳转
+                e.preventDefault();
+                //使用fromdata获取参数
+                var fd = new FormData($('form')[0]);
+                //发送ajax请求
+                $.ajax({
+                    url: BigNew.user_edit,
+                    type: 'post',
+                    dataType: 'json',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function (backData) {
+                        console.log(backData);
+                        //服务器响应之后 成功:刷新页面 失败:提示原因
+                        if (backData.code == 200) {
+                            alert('修改成功!');
+                            /*
+                            注意点:
+                            window:当前页面 user.html
+                            window.parent:父页面 index.fa-html
+
+                            */
+                            //刷新页面
+                            window.parent.location.href='index.html';
+                        } else {
+                            alert(backData.msg);
+                        }
+                    }
+                });
+            })
+        })
+    </script>
 </body>
 
 </html>
