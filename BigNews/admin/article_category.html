@@ -51,5 +51,126 @@
             </table>
         </div>
     </div>
+    <!-- 模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">新增分类</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="form">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">分类名称:</label>
+                            <input type="text" class="form-control" id="recipient-name" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">分类别名:</label>
+                            <input class="form-control" id="message-text" name="slug">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary btnAdd">新增</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 用法 -->
+    <!-- $('#myModal').modal(options) -->
+
+    <!-- 弹框模态框 -->
+    <!-- //拟态框 -->
+    <div class="modal fade" tabindex="-1" role="dialog" id='myModal1'>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">友情提示</h4>
+                </div>
+                <div class="modal-body">
+                    <p>添加成功&hellip;</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <!-- 写入模板 -->
+    <script id="name" type='text/html'>
+        {{each data v}}
+        <tr>
+            <td>{{v.name}}</td>
+            <td>{{v.slug}}</td>
+            <td class="text-center">
+                <a data-id={{v.id}} href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
+                <a data-id={{v.id}} href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a>
+            </td>
+        </tr>
+
+        {{/each}}
+    </script>
+    <!-- 引入网络中间层 -->
+    <script src="./libs/http.js"></script>
+    <script>
+        //入口函数
+        $(function () {
+            //发送ajax请求,获取数据显示页面
+            $.ajax({
+                url: BigNew.category_list,
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    // console.log(backData);
+                    $('.table tbody').html(template('name', backData))
+                }
+            });
+
+            //点击新增按钮事件
+            $('.btnAdd').on('click', function () {
+                // 获取弹框后用户输入的内容
+                var recipient_name = $('#recipient-name').val();
+                var message_text = $('#message-text').val();
+                //判断非空
+                if (recipient_name.length != 0 && message_text.length != 0) {
+                    //发送ajax请求
+                    $.ajax({
+                        url: BigNew.category_add,
+                        type: 'post',
+                        dataType: 'json',
+                        data: {
+                            name: recipient_name,
+                            slug: message_text,
+                        },
+                        success: function (backData) {
+                            if (backData.code == 201) {
+                                $('.modal-body>p').text(backData.msg);
+                                $('#myModal1').modal();
+                                $('.table tbody').append(
+                                    '<tr><td>' + recipient_name + '</td><td>' +
+                                    message_text +
+                                    '</td><td class="text-center"><a href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a><a href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a></td></tr>'
+                                    )
+                                window.location.reload();
+                            } else {
+                                $('.modal-body>p').text(backData.msg);
+                                $('#myModal1').modal();
+                                window.location.reload();
+                            }
+                        }
+                    });
+                }
+            })
+
+        })
+    </script>
+
+</body>
 
 </html>
