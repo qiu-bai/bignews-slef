@@ -150,8 +150,6 @@
                         },
                         success: function (backData) {
                             if (backData.code == 201) {
-                                $('.modal-body>p').text(backData.msg);
-                                $('#myModal1').modal();
                                 $('.table tbody').append(
                                     '<tr><td>' + recipient_name + '</td><td>' +
                                     message_text +
