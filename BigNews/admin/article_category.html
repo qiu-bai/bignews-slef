@@ -35,7 +35,8 @@
                         <td>奇趣事</td>
                         <td>funny</td>
                         <td class="text-center">
-                            <a href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
+                            <a href="javascript:void(0);" data-toggle="modal" data-target="#myModal"
+                                class=" btn btn-info btn-xs">编辑</a>
                             <a href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a>
                         </td>
                     </tr>
@@ -73,35 +74,14 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary btnAdd">新增</button>
+                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-info btn-confirm">确认</button>
                 </div>
             </div>
         </div>
     </div>
     <!-- 用法 -->
     <!-- $('#myModal').modal(options) -->
-
-    <!-- 弹框模态框 -->
-    <!-- //拟态框 -->
-    <div class="modal fade" tabindex="-1" role="dialog" id='myModal1'>
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">友情提示</h4>
-                </div>
-                <div class="modal-body">
-                    <p>添加成功&hellip;</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
-
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
     <!-- 写入模板 -->
     <script id="name" type='text/html'>
         {{each data v}}
@@ -109,8 +89,9 @@
             <td>{{v.name}}</td>
             <td>{{v.slug}}</td>
             <td class="text-center">
-                <a data-id={{v.id}} href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
-                <a data-id={{v.id}} href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a>
+                <a data-id='{{v.id}}' href="javascript:void(0);" data-toggle="modal" data-target="#myModal"
+                    class=" btn btn-info btn-xs btnedit">编辑</a>
+                <a data-id='{{v.id}} 'href="javascript:void(0);" class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
 
@@ -132,40 +113,162 @@
                 }
             });
 
-            //点击新增按钮事件
-            $('.btnAdd').on('click', function () {
-                // 获取弹框后用户输入的内容
-                var recipient_name = $('#recipient-name').val();
-                var message_text = $('#message-text').val();
-                //判断非空
-                if (recipient_name.length != 0 && message_text.length != 0) {
-                    //发送ajax请求
+            // //点击新增按钮事件
+            // $('.btnAdd').on('click', function () {
+            //     // 获取弹框后用户输入的内容
+            //     var recipient_name = $('#recipient-name').val();
+            //     var message_text = $('#message-text').val();
+            //     //判断非空
+            //     if (recipient_name.length != 0 && message_text.length != 0) {
+            //         //发送ajax请求
+            //         $.ajax({
+            //             url: BigNew.category_add,
+            //             type: 'post',
+            //             dataType: 'json',
+            //             data: {
+            //                 name: recipient_name,
+            //                 slug: message_text,
+            //             },
+            //             success: function (backData) {
+            //                 if (backData.code == 201) {
+            //                     $('.table tbody').html(template('name', backData));
+            //                     // $('.table tbody').append(
+            //                     //     '<tr><td>' + recipient_name + '</td><td>' +
+            //                     //     message_text +
+            //                     //     '</td><td class="text-center"><a href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a><a href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a></td></tr>'
+            //                     //     )
+            //                     alert('新增成功!');
+            //                     window.location.reload();
+            //                 }
+            //             }
+            //         });
+            //     } else {
+            //         alert('输入的信息不能为空!!!')
+            //         window.location.reload();
+            //     }
+            // })
+            // $('.btn-cancel').on('click', function () {
+            //     $('#form')[0].reset();
+            // })
+
+            /*
+            新增与编辑难点分析
+            1.新增与编辑弹出同一个模态框,需要模态框复用
+            解决方案:给新增和编辑按钮添加自定义属性data-toggle="modal"
+                data-target="#myModal"
+            2.点击新增和编辑业务逻辑不通
+            解决放案:(1)给模态框注册弹出事件(2)通过e.relatedTarget获取时间触发源
+
+            新增:
+                (1).模态框表单清空
+                (2).模态框显示新增按钮
+                (3).新增ajax:
+            编辑:
+                (1).模态框显示当前编辑的分类信息:传值
+                (2).模态框显示编辑按钮
+                (3).编辑ajax
+
+            */
+            //一.模态框弹出事件
+            $('#myModal').on('show.bs.modal', function (e) {
+                /*
+                注意点:
+                this:事件源 模态框
+                e.relatedTarget:事件触发源 真正用户点击的按钮
+                DOM元素
+                */
+                if ($(e.relatedTarget).text() == '新增分类') {
+                    //2.新增分类
+                    //(1).模态框表单清空
+                    $('.modal-body>form')[0].reset();
+                    //(2)模态框显示新增按钮
+                    $('.btn-confirm').text('新增');
+                } else {
+                    //3.编辑分类
+                    //(1)模态框显示当前编辑的分类信息:传值
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text());
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text());
+                    //(2)模态框显示编辑按钮
+                    $('.btn-confirm').text('编辑');
+                    /*
+                    注意点:只有编辑按钮才有data-id.模态框右下角确认按钮没有data-id
+                    需要点击编辑按钮的时候,把编辑按钮的data-id传递给确认按钮 
+                    */
+                    $('.btn-confirm').attr('data-id', $(e.relatedTarget).attr('data-id'));
+                }
+            })
+            //二.模态框右下角:取消按钮
+            $('.btn-cancel').click(function(){
+                //清空表单
+                $('.modal-body>form')[0].reset();
+            })
+            //三.模态框右下角:确认按钮
+            $('.btn-confirm').on('click', function () {
+                //判断按下的按钮,新增ajax
+                if ($(this).text() == '新增') {
                     $.ajax({
                         url: BigNew.category_add,
                         type: 'post',
                         dataType: 'json',
                         data: {
-                            name: recipient_name,
-                            slug: message_text,
+                            name: $('#recipient-name').val(),
+                            slug: $('#message-text').val(),
                         },
                         success: function (backData) {
+                            console.log(backData);
                             if (backData.code == 201) {
-                                $('.table tbody').append(
-                                    '<tr><td>' + recipient_name + '</td><td>' +
-                                    message_text +
-                                    '</td><td class="text-center"><a href="javascript:void(0);" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a><a href="javascript:void(0);" class="btn btn-danger btn-xs">删除</a></td></tr>'
-                                    )
-                                window.location.reload();
-                            } else {
-                                $('.modal-body>p').text(backData.msg);
-                                $('#myModal1').modal();
+                                alert('新增成功');
                                 window.location.reload();
                             }
                         }
                     });
-                }
-            })
+                } else { //编辑
+                    $.ajax({
+                        url: BigNew.category_edit,
+                        type: 'post',
+                        dataType: 'json',
+                        data: {
+                            id:$(this).attr('data-id'),
+                            name: $('#recipient-name').val(),
+                            slug: $('#message-text').val(),
+                        },
+                        success: function (backData) {
+                            if (backData.code == 200) {
+                                alert('修改成功!');
+                                window.location.reload();
 
+                            }
+                        }
+                    });
+
+                }
+            });
+
+            /*
+            四.删除分类
+            注意点:删除按钮是ajax动态添加的,需要注册委托事件
+
+            */
+           $('table>tbody').on('click','.btn-delete',function(){
+               //1.获取当前点击的按钮的data-id
+               console.log($(this).attr('data-id'));
+               //发送ajax请求
+               $.ajax({
+                   url:BigNew.category_delete,
+                   type:'post',
+                   dataType:'json',
+                   data:{
+                       id:$(this).attr('data-id'),
+                   },
+                   success: function(backData){
+                    console.log(backData);
+                    if(backData.code==204){
+                        alert('删除成功!');
+                        window.location.reload();
+                    }
+                   }
+               });
+           })
         })
     </script>
 

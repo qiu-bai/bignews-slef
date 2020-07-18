@@ -72,6 +72,84 @@
             </div>
         </div>
     </div>
+    <!-- 模板1:文章分类 -->
+    <script id='act_list' type='text/html'>
+        <option value="">所有分类</option>
+        {{each data v}}
+        <option value='{{v.id}}'>{{v.name}}</option>
+
+        {{/each}}
+    </script>
+    <!-- 文章列表模板 -->
+    <script id="all_list" type="text/html">
+        {{each data.data v}}
+        <tr>
+            <td>{{v.title}}</td>
+            <td>{{v.author}}</td>
+            <td>{{v.category}}</td>
+            <td class="text-center">{{v.date}}</td>
+            <td class="text-center">{{v.state}}</td>
+            <td class="text-center">
+                <a data-id={{v.id}} href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
+                <a data-id={{v.id}} href="javascript:void(0);" class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function () {
+            /*
+        1.分析需求(交互)：
+            1.一进入就发送ajax请求渲染到页面(文章列表分类)
+            2.查询文章列表:分类id,文章状态,页数,每页条数
+            3.筛选按钮点击事件:查询文章列表
+            注意点:form表单里面的按钮需要阻止默认跳转
+        */
+            //1.一进入就发送ajax请求渲染到页面(文章列表分类)
+            $.ajax({
+                url: BigNew.category_list,
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    console.log(backData);
+                    $('#selCategory').html(template('act_list', backData));
+                }
+            });
+
+            /*
+             2.查询文章列表:分类id,文章状态,页数,每页条数
+                 3.筛选按钮点击事件:查询文章列表
+                 注意点:form表单里面的按钮需要阻止默认跳转
+            */
+            $('#btnSearch').on('click', function (e) {
+                //阻止表单默认跳转
+                e.preventDefault();
+                $.ajax({
+                    url: BigNew.article_query,
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        type: $("#selCategory").val(),
+                        state: $("#selStatus").val(),
+                        page: 1,
+                        perpage: 10,
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        //渲染到页面
+                        $('table>tbody').html(template('all_list', backData));
+                    }
+                });
+            })
+            //一加载页面就默认点击筛选
+            $('#btnSearch').click();
+
+            //3:分页查询
+            
+            //4:删除文章
+        })
+    </script>
 </body>
 
 </html>
